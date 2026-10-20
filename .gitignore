@@ -1,23 +1,27 @@
-venv/
-runs/
+# Python
 __pycache__/
 *.pyc
 
-datasets/
-uploads/
-
-best.pt
-last.pt
-
-.env
-
-videos/
-uploads/
-runs/
-datasets/
+# Virtual Environment
 venv/
 
+# Training Results
+runs/
+
+# Dataset
+datasets/
+
+# Upload files
+uploads/
+videos/
+
+# Environment variables
+.env
+
+# AI Models
 *.pt
+
+# Video files
 *.mp4
 *.avi
 *.mov

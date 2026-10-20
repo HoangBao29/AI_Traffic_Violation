@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Phát Hiện Vi Phạm Giao Thông</title>
+  <meta name="description" content="Hệ thống AI tự động phát hiện vi phạm giao thông: không đội mũ bảo hiểm, xe máy chở 3 người." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="dark" id="app-body">
+
+  <!-- ── Sidebar ─────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+          <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <span class="brand-text">VioDetect AI</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-page="dashboard" onclick="showPage('dashboard', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" data-page="detect" onclick="showPage('detect', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <span>Phát Hiện</span>
+      </a>
+      <a href="#" class="nav-item" data-page="videos" onclick="showPage('videos', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>
+        </svg>
+        <span>Videos</span>
+      </a>
+      <a href="#" class="nav-item" data-page="violations" onclick="showPage('violations', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span>Vi Phạm</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Đổi giao diện">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <span>Light Mode</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ── Main ───────────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- Header -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 id="page-title">Dashboard</h1>
+      </div>
+      <div class="topbar-right">
+        <div class="api-status" id="apiStatus">
+          <span class="status-dot"></span>
+          <span id="apiStatusText">Đang kết nối...</span>
+        </div>
+        <span class="topbar-time" id="clock"></span>
+      </div>
+    </header>
+
+    <!-- ── PAGE: Dashboard ─────────────────────────────────── -->
+    <div class="page active" id="page-dashboard">
+
+      <!-- Stat Cards -->
+      <div class="stats-grid">
+        <div class="stat-card" id="stat-videos">
+          <div class="stat-icon videos-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Tổng Video</span>
+            <span class="stat-value" id="totalVideos">—</span>
+          </div>
+        </div>
+
+        <div class="stat-card" id="stat-violations">
+          <div class="stat-icon violations-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Tổng Vi Phạm</span>
+            <span class="stat-value" id="totalViolations">—</span>
+          </div>
+        </div>
+
+        <div class="stat-card" id="stat-helmet">
+          <div class="stat-icon helmet-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2a9 9 0 0 1 9 9v1H3v-1a9 9 0 0 1 9-9z"/>
+              <path d="M3 12h18M5 16h14M7 20h10"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Không MBH</span>
+            <span class="stat-value" id="totalHelmet">—</span>
+          </div>
+        </div>
+
+        <div class="stat-card" id="stat-triple">
+          <div class="stat-icon triple-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Chở 3 Người</span>
+            <span class="stat-value" id="totalTriple">—</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent violations table -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Vi Phạm Gần Đây</h2>
+          <button class="btn-outline btn-sm" onclick="loadDashboard()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+              <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            Làm mới
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Video</th>
+                <th>Loại Vi Phạm</th>
+                <th>Confidence</th>
+                <th>Frame</th>
+                <th>Thời gian</th>
+              </tr>
+            </thead>
+            <tbody id="dashViolationsBody">
+              <tr><td colspan="6" class="loading-row"><div class="spinner"></div> Đang tải...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: Detect ────────────────────────────────────── -->
+    <div class="page" id="page-detect">
+      <div class="detect-layout">
+
+        <!-- Upload panel -->
+        <div class="card upload-card">
+          <div class="card-header">
+            <h2>Upload & Phân Tích</h2>
+            <div class="toggle-group">
+              <button class="toggle-btn active" id="modeImage" onclick="setMode('image')">Ảnh</button>
+              <button class="toggle-btn" id="modeVideo" onclick="setMode('video')">Video</button>
+            </div>
+          </div>
+
+          <div class="drop-zone" id="dropZone"
+               ondragover="onDragOver(event)"
+               ondragleave="onDragLeave(event)"
+               ondrop="onDrop(event)"
+               onclick="document.getElementById('fileInput').click()">
+            <div class="drop-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <polyline points="16 16 12 12 8 16"/>
+                <line x1="12" y1="12" x2="12" y2="21"/>
+                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+              </svg>
+            </div>
+            <p class="drop-title">Kéo thả file vào đây</p>
+            <p class="drop-sub" id="dropSub">Chấp nhận: JPG, PNG, MP4, AVI, MOV</p>
+            <button class="btn-primary mt-2" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">
+              Chọn file
+            </button>
+          </div>
+
+          <input type="file" id="fileInput" hidden
+                 accept=".jpg,.jpeg,.png,.bmp,.mp4,.avi,.mov,.mkv"
+                 onchange="onFileSelected(event)" />
+
+          <!-- Preview -->
+          <div class="preview-area" id="previewArea" style="display:none">
+            <div class="preview-header">
+              <span id="previewFileName" class="file-name-label"></span>
+              <button class="btn-ghost btn-sm" onclick="clearFile()">✕ Xoá</button>
+            </div>
+            <img id="previewImage" class="preview-media" style="display:none" alt="Preview" />
+            <video id="previewVideo" class="preview-media" controls style="display:none"></video>
+          </div>
+
+          <!-- Options -->
+          <div class="options-row" id="videoOptions" style="display:none">
+            <label>Bỏ qua N frame:</label>
+            <input type="number" id="frameSkip" value="3" min="1" max="10" class="input-sm" />
+            <span class="hint">Giá trị cao = xử lý nhanh hơn nhưng kém chính xác hơn</span>
+          </div>
+
+          <button class="btn-primary btn-full btn-detect" id="detectBtn"
+                  onclick="runDetect()" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            Phân Tích AI
+          </button>
+        </div>
+
+        <!-- Result panel -->
+        <div class="card result-card">
+          <div class="card-header">
+            <h2>Kết Quả</h2>
+            <span class="badge" id="resultBadge" style="display:none"></span>
+          </div>
+
+          <!-- Placeholder -->
+          <div class="result-placeholder" id="resultPlaceholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" width="64" height="64">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <path d="M8 21h8M12 17v4"/>
+            </svg>
+            <p>Kết quả sẽ hiển thị ở đây sau khi phân tích</p>
+          </div>
+
+          <!-- Progress bar -->
+          <div class="progress-wrap" id="progressWrap" style="display:none">
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <p id="progressText" class="progress-text">Đang xử lý...</p>
+          </div>
+
+          <!-- Result image/video -->
+          <img id="resultImage" class="result-media" style="display:none" alt="Annotated result" />
+          <video id="resultVideo" class="result-media" controls style="display:none"></video>
+
+          <!-- Summary cards -->
+          <div class="result-summary" id="resultSummary" style="display:none">
+            <div class="summary-item">
+              <span class="summary-num" id="sumTotal">0</span>
+              <span class="summary-label">Tổng Vi Phạm</span>
+            </div>
+            <div class="summary-item red">
+              <span class="summary-num" id="sumHelmet">0</span>
+              <span class="summary-label">Không MBH</span>
+            </div>
+            <div class="summary-item orange">
+              <span class="summary-num" id="sumTriple">0</span>
+              <span class="summary-label">Chở 3 Người</span>
+            </div>
+          </div>
+
+          <!-- Violations list -->
+          <div id="violationsList" style="display:none">
+            <h3 class="section-title">Chi Tiết Vi Phạm</h3>
+            <div id="violationsListBody"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: Videos ────────────────────────────────────── -->
+    <div class="page" id="page-videos">
+      <div class="card">
+        <div class="card-header">
+          <h2>Danh Sách Video</h2>
+          <button class="btn-outline btn-sm" onclick="loadVideos()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+              <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+            </svg>
+            Làm mới
+          </button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tên file</th>
+                <th>Trạng thái</th>
+                <th>Vi phạm</th>
+                <th>Thời gian upload</th>
+                <th>Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="videosBody">
+              <tr><td colspan="6" class="loading-row"><div class="spinner"></div> Đang tải...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: Violations ────────────────────────────────── -->
+    <div class="page" id="page-violations">
+      <div class="card">
+        <div class="card-header">
+          <h2>Danh Sách Vi Phạm</h2>
+          <div class="filter-row">
+            <select id="filterType" class="input-sm" onchange="loadViolations()">
+              <option value="">Tất cả loại</option>
+              <option value="no_helmet">Không MBH</option>
+              <option value="overloaded_motorcycle">Chở 3 người</option>
+            </select>
+            <button class="btn-outline btn-sm" onclick="loadViolations()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+              </svg>
+              Làm mới
+            </button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Video ID</th>
+                <th>Loại Vi Phạm</th>
+                <th>Mô tả</th>
+                <th>Confidence</th>
+                <th>Frame</th>
+                <th>Thời gian</th>
+              </tr>
+            </thead>
+            <tbody id="violationsBody">
+              <tr><td colspan="7" class="loading-row"><div class="spinner"></div> Đang tải...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Toast notification -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
