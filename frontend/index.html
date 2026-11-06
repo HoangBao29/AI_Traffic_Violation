@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Phát Hiện Vi Phạm Giao Thông</title>
-  <meta name="description" content="Hệ thống AI tự động phát hiện vi phạm giao thông: không đội mũ bảo hiểm, xe máy chở 3 người." />
+  <title>AI Traffic Violation - Hệ Thống Giám Sát & Xử Lý Vi Phạm Giao Thông</title>
+  <meta name="description" content="AI phát hiện vi phạm giao thông: Không MBH, xe kẹp 3, vượt đèn đỏ, nhận dạng biển số xe tự động và phân quyền CSGT/Viewer." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body class="dark" id="app-body">
@@ -20,7 +20,9 @@
           <path d="M2 17l10 5 10-5M2 12l10 5 10-5"/>
         </svg>
       </div>
-      <span class="brand-text">VioDetect AI</span>
+      <div class="brand-info">
+        <span class="brand-text">AI Traffic Violation</span>
+      </div>
     </div>
 
     <nav class="sidebar-nav">
@@ -35,25 +37,38 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
         </svg>
-        <span>Phát Hiện</span>
+        <span>Phân Tích Vi Phạm Bằng AI</span>
       </a>
       <a href="#" class="nav-item" data-page="videos" onclick="showPage('videos', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/>
         </svg>
-        <span>Videos</span>
+        <span>Videos Giám Sát</span>
       </a>
       <a href="#" class="nav-item" data-page="violations" onclick="showPage('violations', this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
           <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
         </svg>
-        <span>Vi Phạm</span>
+        <span>Xử Lý Vi Phạm</span>
+      </a>
+      <a href="#" class="nav-item" data-page="image-history" onclick="showPage('image-history', this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+          <path d="m21 15-5-5L5 21"/>
+        </svg>
+        <span>Lịch Sử Phân Tích Ảnh</span>
+      </a>
+      <a href="#" class="nav-item admin-only-nav" data-page="audit" onclick="showPage('audit', this)" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>
+        </svg>
+        <span>Nhật Ký Hoạt Động</span>
       </a>
     </nav>
 
     <div class="sidebar-footer">
-      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Đổi giao diện">
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Đổi giao diện Sáng / Tối">
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="5"/>
           <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
@@ -69,12 +84,36 @@
   <!-- ── Main ───────────────────────────────────────────────── -->
   <main class="main">
 
-    <!-- Header -->
+    <!-- Header Topbar -->
     <header class="topbar">
       <div class="topbar-left">
         <h1 id="page-title">Dashboard</h1>
       </div>
       <div class="topbar-right">
+        <!-- Nút Thêm Quản Trị Viên (Chỉ CSGT/Admin) -->
+        <button class="btn-outline btn-sm btn-add-admin" id="btnAddAdmin" onclick="openAddAdminModal()" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Thêm Quản Trị Viên
+        </button>
+
+        <!-- User Session Pill -->
+        <div class="user-pill" id="userPill" onclick="openLoginModal()">
+          <div class="user-avatar" id="userAvatar">👮</div>
+          <div class="user-details">
+            <span class="user-name" id="userName">Chưa đăng nhập</span>
+            <span class="user-role-badge" id="userRoleBadge">KHÁCH</span>
+          </div>
+          <button class="btn-logout" id="logoutBtn" onclick="handleLogout(event)" title="Đăng xuất">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </button>
+        </div>
+
         <div class="api-status" id="apiStatus">
           <span class="status-dot"></span>
           <span id="apiStatusText">Đang kết nối...</span>
@@ -95,7 +134,7 @@
             </svg>
           </div>
           <div class="stat-info">
-            <span class="stat-label">Tổng Video</span>
+            <span class="stat-label">Tổng Video Giám Sát</span>
             <span class="stat-value" id="totalVideos">—</span>
           </div>
         </div>
@@ -135,16 +174,49 @@
             </svg>
           </div>
           <div class="stat-info">
-            <span class="stat-label">Chở 3 Người</span>
+            <span class="stat-label">Chở Quá Số Người</span>
             <span class="stat-value" id="totalTriple">—</span>
           </div>
         </div>
+
+        <div class="stat-card" id="stat-redlight">
+          <div class="stat-icon redlight-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="6" r="3" fill="#ff4d4f"/>
+              <rect x="7" y="2" width="10" height="20" rx="3"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Vượt Đèn Đỏ</span>
+            <span class="stat-value" id="totalRedLight">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card trend-card">
+        <div class="card-header">
+          <div>
+            <h2>Xu Hướng Vi Phạm</h2>
+            <span class="sub-header-role">Thống kê số hồ sơ theo thời gian</span>
+          </div>
+          <div class="trend-controls">
+            <label>Từ ngày <input type="date" id="trendStartDate" class="input-sm" /></label>
+            <label>Đến ngày <input type="date" id="trendEndDate" class="input-sm" /></label>
+            <select id="trendBucket" class="input-sm" aria-label="Nhóm theo">
+              <option value="day">Theo ngày</option>
+              <option value="week">Theo tuần</option>
+            </select>
+            <button class="btn-outline btn-sm" onclick="loadViolationTrends()">Áp dụng</button>
+          </div>
+        </div>
+        <div id="trendChart" class="trend-chart" role="img" aria-label="Biểu đồ xu hướng vi phạm"></div>
+        <div id="trendLegend" class="trend-legend"></div>
       </div>
 
       <!-- Recent violations table -->
       <div class="card">
         <div class="card-header">
-          <h2>Vi Phạm Gần Đây</h2>
+          <h2>Vi Phạm Gần Đây & Biển Số Nhận Dạng</h2>
           <button class="btn-outline btn-sm" onclick="loadDashboard()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
               <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
@@ -159,15 +231,32 @@
               <tr>
                 <th>ID</th>
                 <th>Video</th>
+                <th>Biển Số Xe</th>
                 <th>Loại Vi Phạm</th>
-                <th>Confidence</th>
-                <th>Frame</th>
+                <th>Độ Tin Cậy</th>
+                <th>Trạng Thái</th>
                 <th>Thời gian</th>
               </tr>
             </thead>
             <tbody id="dashViolationsBody">
-              <tr><td colspan="6" class="loading-row"><div class="spinner"></div> Đang tải...</td></tr>
+              <tr><td colspan="7" class="loading-row"><div class="spinner"></div> Đang tải...</td></tr>
             </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Lượt Phân Tích Ảnh Gần Đây</h2>
+            <span class="sub-header-role">Kết quả phân tích, kể cả ảnh không phát hiện vi phạm</span>
+          </div>
+          <button class="btn-outline btn-sm" onclick="loadRecentImageAnalyses('dashboardRecentAnalysesBody', 4)">Làm mới</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>ID</th><th>Tên ảnh</th><th>Số vi phạm</th><th>Thời gian</th><th>Bằng chứng</th></tr></thead>
+            <tbody id="dashboardRecentAnalysesBody"><tr><td colspan="5" class="loading-row">Đang tải...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -180,7 +269,7 @@
         <!-- Upload panel -->
         <div class="card upload-card">
           <div class="card-header">
-            <h2>Upload & Phân Tích</h2>
+            <h2>Tải Dữ Liệu Phân Tích</h2>
             <div class="toggle-group">
               <button class="toggle-btn active" id="modeImage" onclick="setMode('image')">Ảnh</button>
               <button class="toggle-btn" id="modeVideo" onclick="setMode('video')">Video</button>
@@ -199,8 +288,8 @@
                 <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
               </svg>
             </div>
-            <p class="drop-title">Kéo thả file vào đây</p>
-            <p class="drop-sub" id="dropSub">Chấp nhận: JPG, PNG, MP4, AVI, MOV</p>
+            <p class="drop-title">Kéo thả file vào đây hoặc bấm để chọn</p>
+            <p class="drop-sub" id="dropSub">Chấp nhận: JPG, PNG, BMP, MP4, AVI, MOV</p>
             <button class="btn-primary mt-2" onclick="event.stopPropagation(); document.getElementById('fileInput').click()">
               Chọn file
             </button>
@@ -216,15 +305,54 @@
               <span id="previewFileName" class="file-name-label"></span>
               <button class="btn-ghost btn-sm" onclick="clearFile()">✕ Xoá</button>
             </div>
-            <img id="previewImage" class="preview-media" style="display:none" alt="Preview" />
-            <video id="previewVideo" class="preview-media" controls style="display:none"></video>
+            <div class="preview-media-wrap">
+              <img id="previewImage" class="preview-media" style="display:none" alt="Preview" />
+              <video id="previewVideo" class="preview-media" controls style="display:none"></video>
+              <div class="stop-line-guide" id="stopLineGuide" style="top: 72%;">
+                <span>VẠCH DỪNG ĐÈN ĐỎ (STOP-LINE)</span>
+              </div>
+            </div>
           </div>
 
-          <!-- Options -->
-          <div class="options-row" id="videoOptions" style="display:none">
-            <label>Bỏ qua N frame:</label>
-            <input type="number" id="frameSkip" value="3" min="1" max="10" class="input-sm" />
-            <span class="hint">Giá trị cao = xử lý nhanh hơn nhưng kém chính xác hơn</span>
+          <!-- Detection Options -->
+          <div class="detection-settings">
+            <div class="setting-item camera-config-controls">
+              <label class="setting-label" for="cameraId">Mã camera:</label>
+              <input type="text" id="cameraId" class="form-input" maxlength="120" value="default"
+                     onblur="loadCameraConfig()" placeholder="VD: nga-tu-01" />
+              <button class="btn-outline btn-sm" type="button" onclick="saveCameraConfig()">Lưu cấu hình camera</button>
+            </div>
+            <div class="setting-item-toggle">
+              <label class="switch-container">
+                <input type="checkbox" id="toggleStopLine" checked onchange="handleStopLineToggle(this.checked)" />
+                <span class="switch-slider"></span>
+                <span class="switch-text">Bật kiểm tra Vạch dừng đèn đỏ (Giao lộ)</span>
+              </label>
+              <span class="hint-small">Bật khi có vạch dừng ngã tư, Tắt nếu là đoạn đường thông thường</span>
+            </div>
+
+            <div class="setting-item" id="stopLineSettingGroup">
+              <label class="setting-label">
+                <span>Vị trí Vạch Dừng Đèn Đỏ (Stop-Line ROI):</span>
+                <span class="setting-val" id="stopLineVal">72%</span>
+              </label>
+              <input type="range" id="stopLineRange" min="30" max="95" value="72" oninput="updateStopLine(this.value)" />
+            </div>
+            <div class="setting-item" id="stopLineAngleSettingGroup">
+              <label class="setting-label" for="stopLineAngleRange">
+                <span>Góc xoay vạch dừng:</span>
+                <span class="setting-val" id="stopLineAngleVal">0°</span>
+              </label>
+              <input type="range" id="stopLineAngleRange" min="-45" max="45" value="0"
+                     oninput="updateStopLineAngle(this.value)" />
+              <span class="hint-small">Kéo để căn vạch theo góc giao lộ trong video</span>
+            </div>
+
+            <div class="options-row" id="videoOptions" style="display:none">
+              <label>Bỏ qua N frame:</label>
+              <input type="number" id="frameSkip" value="3" min="1" max="10" class="input-sm" />
+              <span class="hint">Tăng tốc độ xử lý video</span>
+            </div>
           </div>
 
           <button class="btn-primary btn-full btn-detect" id="detectBtn"
@@ -232,14 +360,14 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
               <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
             </svg>
-            Phân Tích AI
+            Phân tích vi phạm bằng AI
           </button>
         </div>
 
         <!-- Result panel -->
         <div class="card result-card">
           <div class="card-header">
-            <h2>Kết Quả</h2>
+            <h2>Kết Quả Nhận Diện AI</h2>
             <span class="badge" id="resultBadge" style="display:none"></span>
           </div>
 
@@ -249,7 +377,7 @@
               <rect x="2" y="3" width="20" height="14" rx="2"/>
               <path d="M8 21h8M12 17v4"/>
             </svg>
-            <p>Kết quả sẽ hiển thị ở đây sau khi phân tích</p>
+            <p>Kết quả phân tích (Bounding Box, Biển số xe, Cảnh báo đèn đỏ) sẽ hiển thị ở đây</p>
           </div>
 
           <!-- Progress bar -->
@@ -274,13 +402,23 @@
             </div>
             <div class="summary-item orange">
               <span class="summary-num" id="sumTriple">0</span>
-              <span class="summary-label">Chở 3 Người</span>
+              <span class="summary-label">Chở Quá Người</span>
             </div>
+            <div class="summary-item redlight">
+              <span class="summary-num" id="sumRedLight">0</span>
+              <span class="summary-label">Vượt Đèn Đỏ</span>
+            </div>
+          </div>
+
+          <!-- Plates found -->
+          <div class="plates-found-box" id="platesFoundBox" style="display:none">
+            <span class="plates-title">🚗 Biển số nhận dạng được:</span>
+            <div class="plates-list" id="detectedPlatesList"></div>
           </div>
 
           <!-- Violations list -->
           <div id="violationsList" style="display:none">
-            <h3 class="section-title">Chi Tiết Vi Phạm</h3>
+            <h3 class="section-title">Chi Tiết Vi Phạm Phát Hiện</h3>
             <div id="violationsListBody"></div>
           </div>
         </div>
@@ -291,7 +429,7 @@
     <div class="page" id="page-videos">
       <div class="card">
         <div class="card-header">
-          <h2>Danh Sách Video</h2>
+          <h2>Quản Lý Video Giám Sát</h2>
           <button class="btn-outline btn-sm" onclick="loadVideos()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
               <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
@@ -300,6 +438,17 @@
             Làm mới
           </button>
         </div>
+        <div class="filter-row table-toolbar">
+          <input type="search" id="videoSearch" class="input-sm" placeholder="Tìm tên video..."
+                 oninput="debouncedLoadVideos()" />
+          <select id="videoStatusFilter" class="input-sm" onchange="resetVideoPage()">
+            <option value="">Tất cả trạng thái</option>
+            <option value="pending">Chờ xử lý</option>
+            <option value="processing">Đang xử lý</option>
+            <option value="processed">Hoàn tất</option>
+            <option value="error">Lỗi</option>
+          </select>
+        </div>
         <div class="table-wrap">
           <table class="data-table">
             <thead>
@@ -307,8 +456,8 @@
                 <th>ID</th>
                 <th>Tên file</th>
                 <th>Trạng thái</th>
-                <th>Vi phạm</th>
-                <th>Thời gian upload</th>
+                <th>Số vi phạm</th>
+                <th>Thời gian</th>
                 <th>Hành động</th>
               </tr>
             </thead>
@@ -317,6 +466,39 @@
             </tbody>
           </table>
         </div>
+        <div class="table-pagination">
+          <span id="videosPageInfo"></span>
+          <button class="btn-outline btn-sm" onclick="changeVideoPage(-1)">Trước</button>
+          <button class="btn-outline btn-sm" onclick="changeVideoPage(1)">Sau</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── PAGE: Image history ─────────────────────────────── -->
+    <div class="page" id="page-image-history">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Lịch Sử Phân Tích Ảnh</h2>
+            <span class="sub-header-role">Lưu kết quả ảnh và bằng chứng trên Supabase</span>
+          </div>
+          <button class="btn-outline btn-sm" onclick="loadImageHistory()">Làm mới</button>
+        </div>
+        <div class="filter-row table-toolbar">
+          <label>Từ ngày <input type="date" id="imageHistoryStart" class="input-sm" onchange="resetImageHistoryPage()" /></label>
+          <label>Đến ngày <input type="date" id="imageHistoryEnd" class="input-sm" onchange="resetImageHistoryPage()" /></label>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>ID</th><th>Tên ảnh</th><th>Số vi phạm</th><th>Thời gian</th><th>Bằng chứng</th></tr></thead>
+            <tbody id="imageHistoryBody"><tr><td colspan="5" class="loading-row">Đang tải...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="table-pagination">
+          <span id="imageHistoryPageInfo"></span>
+          <button class="btn-outline btn-sm" onclick="changeImageHistoryPage(-1)">Trước</button>
+          <button class="btn-outline btn-sm" onclick="changeImageHistoryPage(1)">Sau</button>
+        </div>
       </div>
     </div>
 
@@ -324,12 +506,24 @@
     <div class="page" id="page-violations">
       <div class="card">
         <div class="card-header">
-          <h2>Danh Sách Vi Phạm</h2>
+          <div>
+            <h2>Hồ Sơ Xử Lý Vi Phạm & Phạt Nguội</h2>
+            <span class="sub-header-role" id="roleNotice">Quyền hạn: Đang kiểm tra...</span>
+          </div>
           <div class="filter-row">
-            <select id="filterType" class="input-sm" onchange="loadViolations()">
-              <option value="">Tất cả loại</option>
-              <option value="no_helmet">Không MBH</option>
-              <option value="overloaded_motorcycle">Chở 3 người</option>
+            <input type="search" id="violationSearch" class="input-sm" placeholder="Tìm mô tả vi phạm..."
+                   oninput="debouncedLoadViolations()" />
+            <select id="filterType" class="input-sm" onchange="resetViolationPage()">
+              <option value="">Tất cả loại vi phạm</option>
+              <option value="no_helmet">Không đội MBH</option>
+              <option value="overloaded_motorcycle">Chở quá số người</option>
+              <option value="red_light">Vượt đèn đỏ</option>
+            </select>
+            <select id="filterReview" class="input-sm" onchange="resetViolationPage()">
+              <option value="">Tất cả trạng thái duyệt</option>
+              <option value="pending">Chờ CSGT duyệt</option>
+              <option value="approved">Đã duyệt (Phạt nguội)</option>
+              <option value="rejected">Bác bỏ (Không phạt)</option>
             </select>
             <button class="btn-outline btn-sm" onclick="loadViolations()">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
@@ -338,6 +532,7 @@
               </svg>
               Làm mới
             </button>
+            <button class="btn-outline btn-sm" onclick="exportViolationsCsv()">Xuất CSV</button>
           </div>
         </div>
         <div class="table-wrap">
@@ -346,22 +541,230 @@
               <tr>
                 <th>ID</th>
                 <th>Video ID</th>
+                <th>Biển Số Xe (ALPR)</th>
                 <th>Loại Vi Phạm</th>
-                <th>Mô tả</th>
-                <th>Confidence</th>
-                <th>Frame</th>
-                <th>Thời gian</th>
+                <th>Mô Tả / Ghi Chú</th>
+                <th>Độ Tin Cậy</th>
+                <th>Trạng Thái Duyệt</th>
+                <th>Hành Động (CSGT)</th>
               </tr>
             </thead>
             <tbody id="violationsBody">
-              <tr><td colspan="7" class="loading-row"><div class="spinner"></div> Đang tải...</td></tr>
+              <tr><td colspan="8" class="loading-row"><div class="spinner"></div> Đang tải...</td></tr>
             </tbody>
+          </table>
+        </div>
+        <div class="table-pagination">
+          <span id="violationsPageInfo"></span>
+          <button class="btn-outline btn-sm" onclick="changeViolationPage(-1)">Trước</button>
+          <button class="btn-outline btn-sm" onclick="changeViolationPage(1)">Sau</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Lượt Phân Tích Ảnh Gần Đây</h2>
+            <span class="sub-header-role">Đây là lịch sử phân tích, không phải hồ sơ vi phạm</span>
+          </div>
+          <button class="btn-outline btn-sm" onclick="loadRecentImageAnalyses('violationRecentAnalysesBody', 4)">Làm mới</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>ID</th><th>Tên ảnh</th><th>Số vi phạm</th><th>Thời gian</th><th>Bằng chứng</th></tr></thead>
+            <tbody id="violationRecentAnalysesBody"><tr><td colspan="5" class="loading-row">Đang tải...</td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
 
+    <!-- ── PAGE: Admin audit log ───────────────────────────── -->
+    <div class="page" id="page-audit">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Nhật Ký Hoạt Động</h2>
+            <span class="sub-header-role">Chỉ quản trị viên có thể xem</span>
+          </div>
+          <button class="btn-outline btn-sm" onclick="loadAuditLogs()">Làm mới</button>
+        </div>
+        <div class="filter-row table-toolbar">
+          <input type="search" id="auditSearch" class="input-sm" placeholder="Lọc theo tên hành động..." oninput="debouncedLoadAuditLogs()" />
+          <label>Từ ngày <input type="date" id="auditStartDate" class="input-sm" onchange="resetAuditPage()" /></label>
+          <label>Đến ngày <input type="date" id="auditEndDate" class="input-sm" onchange="resetAuditPage()" /></label>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead><tr><th>Thời gian</th><th>Người thực hiện</th><th>Hành động</th><th>Đối tượng</th><th>Chi tiết</th></tr></thead>
+            <tbody id="auditLogsBody"><tr><td colspan="5" class="loading-row">Đang tải...</td></tr></tbody>
+          </table>
+        </div>
+        <div class="table-pagination">
+          <span id="auditPageInfo"></span>
+          <button class="btn-outline btn-sm" onclick="changeAuditPage(-1)">Trước</button>
+          <button class="btn-outline btn-sm" onclick="changeAuditPage(1)">Sau</button>
+        </div>
+      </div>
+    </div>
+
   </main>
+
+  <!-- ── MODAL: ĐĂNG NHẬP / ĐĂNG KÝ ────────────────────────── -->
+  <div class="modal-overlay" id="loginModal" style="display:none">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-tabs">
+          <button class="modal-tab active" id="tabLoginBtn" onclick="switchAuthTab('login')">Đăng Nhập</button>
+          <button class="modal-tab" id="tabRegisterBtn" onclick="switchAuthTab('register')">Đăng Ký Mới</button>
+        </div>
+        <button class="btn-close" onclick="closeLoginModal()">✕</button>
+      </div>
+
+      <!-- FORM ĐĂNG NHẬP -->
+      <div class="modal-body" id="authLoginForm">
+        <p class="modal-desc">Đăng nhập tài khoản để xác định thẩm quyền xử lý và duyệt vi phạm giao thông.</p>
+
+        <div class="divider"><span>Đăng nhập bằng tài khoản Supabase</span></div>
+
+        <div class="form-group">
+          <label>Email:</label>
+          <input type="email" id="loginUser" class="form-input" placeholder="Email đã đăng ký" autocomplete="email" />
+        </div>
+        <div class="form-group">
+          <label>Mật khẩu:</label>
+          <input type="password" id="loginPass" class="form-input" placeholder="Nhập mật khẩu" autocomplete="current-password" />
+        </div>
+        <button class="btn-primary btn-full mt-3" onclick="submitLogin()">Đăng Nhập</button>
+        <div class="auth-help-actions">
+          <button class="btn-ghost btn-sm" onclick="requestPasswordReset()">Quên mật khẩu?</button>
+          <button class="btn-ghost btn-sm" onclick="resendConfirmation()">Gửi lại email xác minh</button>
+        </div>
+      </div>
+
+      <!-- FORM ĐĂNG KÝ (LƯU VÀO SUPABASE, MẶC ĐỊNH LÀ NGƯỜI XEM) -->
+      <div class="modal-body" id="authRegisterForm" style="display:none">
+        <p class="modal-desc">Đăng ký tài khoản người xem mới. Thông tin tài khoản sẽ được lưu an toàn vào <strong>Supabase</strong> với quyền mặc định là <strong>Người xem (Viewer)</strong>.</p>
+
+        <div class="form-group">
+          <label>Họ và tên của bạn:</label>
+          <input type="text" id="regFullName" class="form-input" placeholder="VD: Nguyễn Văn Nam" />
+        </div>
+        <div class="form-group">
+          <label>Tên đăng nhập:</label>
+          <input type="text" id="regUsername" class="form-input" placeholder="VD: namnguyen2026" />
+        </div>
+        <div class="form-group">
+          <label>Email:</label>
+          <input type="email" id="regEmail" class="form-input" placeholder="VD: namnguyen@gmail.com" autocomplete="email" required />
+        </div>
+        <div class="form-group">
+          <label>Mật khẩu (tối thiểu 6 ký tự):</label>
+          <input type="password" id="regPass" class="form-input" placeholder="Nhập mật khẩu bí mật" autocomplete="new-password" />
+        </div>
+        <div class="form-group">
+          <label>Nhập lại mật khẩu:</label>
+          <input type="password" id="regPassConfirm" class="form-input" placeholder="Nhập lại mật khẩu để xác nhận" autocomplete="new-password" />
+        </div>
+
+        <button class="btn-primary btn-full mt-3" onclick="submitRegister()">Đăng Ký Tài Khoản (Người Xem)</button>
+      </div>
+
+      <div class="modal-body" id="authRecoveryForm" style="display:none">
+        <p class="modal-desc">Đặt mật khẩu mới cho tài khoản của bạn.</p>
+        <div class="form-group">
+          <label>Mật khẩu mới:</label>
+          <input type="password" id="recoveryPassword" class="form-input" autocomplete="new-password" />
+        </div>
+        <div class="form-group">
+          <label>Xác nhận mật khẩu mới:</label>
+          <input type="password" id="recoveryPasswordConfirm" class="form-input" autocomplete="new-password" />
+        </div>
+        <button class="btn-primary btn-full mt-3" onclick="completePasswordReset()">Cập nhật mật khẩu</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="violationReportModal" style="display:none"
+       onclick="if (event.target === this) closeViolationReport()">
+    <div class="modal-card report-modal-card">
+      <div class="modal-header">
+        <h3 id="violationReportTitle">Báo Cáo Vi Phạm</h3>
+        <div class="action-btn-group">
+          <button class="btn-outline btn-sm" onclick="window.print()">In / Lưu PDF</button>
+          <button class="btn-close" onclick="closeViolationReport()">✕</button>
+        </div>
+      </div>
+      <div class="modal-body" id="violationReportBody"></div>
+      <div class="report-modal-footer">
+        <button class="btn-outline" type="button" onclick="closeViolationReport()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: THÊM QUẢN TRỊ VIÊN MỚI (CHỈ DÀNH CHO ADMIN) ──── -->
+  <div class="modal-overlay" id="addAdminModal" style="display:none">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>👮 Thêm Quản Trị Viên / CSGT Mới</h3>
+        <button class="btn-close" onclick="closeAddAdminModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Chỉ tài khoản Quản trị viên hiện tại mới có thẩm quyền cấp quyền Quản trị viên / CSGT mới.</p>
+        <div class="form-group">
+          <label>Họ và tên Cán bộ / CSGT:</label>
+          <input type="text" id="adminFullName" class="form-input" placeholder="VD: Trung tá Lê Văn C" />
+        </div>
+        <div class="form-group">
+          <label>Tên đăng nhập:</label>
+          <input type="text" id="adminUsername" class="form-input" placeholder="VD: csgt_levanc" />
+        </div>
+        <div class="form-group">
+          <label>Email Cán bộ:</label>
+          <input type="email" id="adminEmail" class="form-input" placeholder="VD: levanc@csgt.gov.vn" required />
+        </div>
+        <div class="form-group">
+          <label>Số hiệu CSGT (Badge ID):</label>
+          <input type="text" id="adminBadge" class="form-input" value="CSGT-99" placeholder="VD: CSGT-99" />
+        </div>
+        <div class="form-group">
+          <label>Đơn vị công tác:</label>
+          <input type="text" id="adminUnit" class="form-input" value="Đội CSGT Số 1" placeholder="VD: Đội CSGT Tuần tra Dẫn đoàn" />
+        </div>
+        <div class="form-group">
+          <label>Mật khẩu khởi tạo:</label>
+          <input type="password" id="adminPass" class="form-input" placeholder="Tối thiểu 6 ký tự" autocomplete="new-password" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn-outline" onclick="closeAddAdminModal()">Hủy</button>
+          <button class="btn-primary" onclick="submitCreateAdmin()">Tạo Quản Trị Viên</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MODAL: SỬA BIỂN SỐ / GHI CHÚ VI PHẠM (CSGT) ─────── -->
+  <div class="modal-overlay" id="editModal" style="display:none">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Chỉnh Sửa Hồ Sơ Vi Phạm #<span id="editId"></span></h3>
+        <button class="btn-close" onclick="closeEditModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Biển kiểm soát (Biển số xe):</label>
+          <input type="text" id="editPlate" class="form-input font-mono" placeholder="VD: 29A-123.45" />
+        </div>
+        <div class="form-group">
+          <label>Ghi chú CSGT / Căn cứ biên bản:</label>
+          <textarea id="editNotes" class="form-input" rows="3" placeholder="Ghi chú xác minh, tuyến đường, điều luật vi phạm..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-outline" onclick="closeEditModal()">Hủy</button>
+          <button class="btn-primary" onclick="saveEditViolation()">Lưu Hồ Sơ</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Toast notification -->
   <div class="toast-container" id="toastContainer"></div>
